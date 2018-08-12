@@ -13,11 +13,23 @@ def tokenizer(text):
 @click.option('--input','-i',default=None)
 def analyze(input):
     corpus = open(input).read().split("\n")
-    cv = CountVectorizer(tokenizer=tokenizer)
+    ignored_words = [
+        '。',
+        '、',
+        '，',
+    ]
+    cv = CountVectorizer(tokenizer=tokenizer, stop_words=ignored_words)
     x = cv.fit_transform(corpus)
     fn = cv.get_feature_names()
-    pdb.set_trace()
+    #pdb.set_trace()
     print(fn)
+    digit_count = 0
+    for w in fn:
+        if w.isdigit():
+            # all letters are number numbers
+            digit_count += 1
+    print("全体: {}".format(len(fn)))
+    print("数字: {}".format(digit_count))
 
 if __name__ == "__main__":
     analyze()

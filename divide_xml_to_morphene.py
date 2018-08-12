@@ -17,13 +17,13 @@ def parse_xml(path):
     p = Popen(cmd, stdin=PIPE, stdout=PIPE, universal_newlines=True)
     out, err = p.communicate(input)
     lines = out.splitlines()
-    # extract only the words and seperate it by comma
+    # extract only the lemmatized words and seperate it by comma
     words = []
     for l in lines:
         if l == "EOS":
             break
         outs = l.split('\t')
-        words.append(outs[0])
+        words.append(outs[-1]) # lemmatized word comes last
     print(",".join(words))
 
 if __name__ == "__main__":
