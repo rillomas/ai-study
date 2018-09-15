@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import click
 import math
+import matplotlib
 import matplotlib.pyplot as plt
+import sklearn.cluster as cluster
+import pdb
 
 class PopulationInfo:
     def __init__(self, line):
@@ -50,21 +53,41 @@ def load_input(input):
             info_list.append(inf)
     return info_list
 
-@click.command()
-@click.option('--input','-i',default=None)
-def analyze(input):
-    data = load_input(input)
-    x = []
-    y = []
-    for d in data:
-        x.append(d.population.foreign_rate)
-        y.append(d.population.birth_rate)
+def display_chart(coord, tag, colors):
     plt.figure()
     plt.title("Foreigner to Birth rate")
     plt.xlabel("Foreigner Rate")
     plt.ylabel("Birth Rate")
-    plt.scatter(x, y)
+    plt.scatter(*zip(*coord), c=tag, cmap=matplotlib.colors.ListedColormap(colors))
     plt.show()
+
+@click.command()
+@click.option('--input','-i',default=None)
+def analyze(input):
+    data = load_input(input)
+    trainNum = 600
+    train = data[:trainNum]
+    validate = data[trainNum:]
+    train_coord = []
+    for d in train:
+        dp = d.population
+        #if dp.birth_rate > 0.2:
+        #    print("birth_rate seems too high and considered an anomaly. Skipping: {}".format(dp))
+        #    continue
+        if dp.foreign_rate is math.nan or dp.birth_rate is math.nan:
+            print("birth_rate or foreign_rate is NaN. Skipping: {} {}"
+                  .format(d.prefecture, d.municipality))
+            continue
+        train_coord.append((dp.foreign_rate, dp.birth_rate)) # coordinates
+    km = cluster.KMeans(n_clusters=2, random_state=1234)
+    cluster_result = km.fit(train_coord)
+    train_tag = cluster_result.labels_
+    #pdb.set_trace()
+
+    C = 1.0 # SVM regularization parameter
+    #model = svm.SVC(kernel='linear', C=C)
+    #model.fit(coord, tag)
+    display_chart(train_coord, train_tag, ["red","blue"])
 
 if __name__ == "__main__":
     analyze()
