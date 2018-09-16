@@ -3,7 +3,9 @@ import click
 import math
 import matplotlib
 import matplotlib.pyplot as plt
-import sklearn.cluster as cluster
+from sklearn import svm, cluster
+import sklearn.metrics as skm
+import random
 import pdb
 
 class PopulationInfo:
@@ -73,16 +75,10 @@ def display_chart(coord, tag, colors):
     #plt.ylim(ymin=0)
     plt.show()
 
-@click.command()
-@click.option('--input','-i',default=None)
-def analyze(input):
-    data = load_input(input)
-    trainNum = 600
-    train = data[:trainNum]
-    validate = data[trainNum:]
-    train_coord = []
-    train_tag = []
-    for d in train:
+def extract_coord_and_tags(data):
+    coord = []
+    tag = []
+    for d in data:
         dp = d.population
         if (dp.foreign_rate is math.nan or
             dp.birth_rate is math.nan or
@@ -94,21 +90,47 @@ def analyze(input):
             print("birth_rate is very high {}: {} {}"
                   .format(dp.birth_rate, d.prefecture, d.municipality))
             continue
-        if dp.foreign_rate > 0.1:
-            print("foreign_rate is very high {}: {} {}"
-                  .format(dp.foreign_rate, d.prefecture, d.municipality))
-            continue
-        train_coord.append((dp.foreign_rate, dp.birth_rate)) # coordinates
-        train_tag.append(0 if dp.growth_rate < 1.0 else 1)
+        #if dp.foreign_rate > 0.1:
+        #    print("foreign_rate is very high {}: {} {}"
+        #          .format(dp.foreign_rate, d.prefecture, d.municipality))
+        #    continue
+        coord.append((dp.foreign_rate, dp.birth_rate)) # coordinates
+        tag.append(0 if dp.growth_rate < 1.0 else 1)
+    return coord, tag
+
+@click.command()
+@click.option('--input','-i',default=None)
+def analyze(input):
+    data = load_input(input)
+    seed = 12345
+    random.seed(seed)
+    random.shuffle(data)
+    trainNum = 600
+    train = data[:trainNum]
+    validate = data[trainNum:]
+    train_coord, train_tag = extract_coord_and_tags(train)
+    validate_coord, validate_tag = extract_coord_and_tags(validate)
     #km = cluster.KMeans(n_clusters=2, random_state=1234)
     #cluster_result = km.fit(train_coord)
     #train_tag = cluster_result.labels_
-    #pdb.set_trace()
 
+    #display_chart(train_coord, train_tag, ["blue","red"])
+    #display_chart(validate_coord, validate_tag, ["blue","red"])
     C = 1.0 # SVM regularization parameter
-    #model = svm.SVC(kernel='linear', C=C)
-    #model.fit(coord, tag)
-    display_chart(train_coord, train_tag, ["blue","red"])
+    model = svm.SVC(kernel='linear', C=C)
+    model.fit(train_coord, train_tag)
+    predict_result = model.predict(validate_coord)
+    mat = skm.confusion_matrix(validate_tag, predict_result)
+    accuracy = skm.accuracy_score(validate_tag, predict_result)
+    precision = skm.precision_score(validate_tag, predict_result)
+    recall = skm.recall_score(validate_tag, predict_result)
+    f1 = skm.f1_score(validate_tag, predict_result)
+    print("confusion matrix: ", mat)
+    print("accuary: ", accuracy)
+    print("precision: ", precision)
+    print("recall: ", recall)
+    print("F1: ", f1)
+    pdb.set_trace()
 
 if __name__ == "__main__":
     analyze()
