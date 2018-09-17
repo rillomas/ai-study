@@ -8,6 +8,10 @@ import sklearn.metrics as skm
 import random
 import pdb
 
+# We multiply this scale value because
+# the input value seems to be too small?
+SCALE = 10.0
+
 class PopulationInfo:
     def __init__(self, line):
         self.total = int(line[3])
@@ -94,7 +98,7 @@ def extract_coord_and_tags(data):
         #    print("foreign_rate is very high {}: {} {}"
         #          .format(dp.foreign_rate, d.prefecture, d.municipality))
         #    continue
-        coord.append((dp.foreign_rate, dp.birth_rate)) # coordinates
+        coord.append((dp.foreign_rate*SCALE, dp.birth_rate*SCALE)) # coordinates
         tag.append(0 if dp.growth_rate < 1.0 else 1)
     return coord, tag
 
@@ -117,7 +121,11 @@ def analyze(input):
     #display_chart(train_coord, train_tag, ["blue","red"])
     #display_chart(validate_coord, validate_tag, ["blue","red"])
     C = 1.0 # SVM regularization parameter
-    model = svm.SVC(kernel='linear', C=C)
+    model = svm.SVC(kernel='linear',
+                    C=C,
+                    class_weight='balanced',
+                    random_state=seed)
+    #model = svm.LinearSVC(C=C)
     model.fit(train_coord, train_tag)
     predict_result = model.predict(validate_coord)
     mat = skm.confusion_matrix(validate_tag, predict_result)
@@ -130,7 +138,17 @@ def analyze(input):
     print("precision: ", precision)
     print("recall: ", recall)
     print("F1: ", f1)
-    pdb.set_trace()
+    #w = model.coef_[0]
+    #i = model.intercept_
+    #a = -w[0]/w[1]
+    #b = i[0]/w[1]
+    #print("y = {}x - {}".format(a, b))
+    #start = (0, -b)
+    #val = 0.15
+    #ev = val*a - b
+    #end = (val, ev)
+    #print(start, end)
+    #pdb.set_trace()
 
 if __name__ == "__main__":
     analyze()
