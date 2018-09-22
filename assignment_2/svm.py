@@ -4,13 +4,15 @@ import math
 import matplotlib
 import matplotlib.pyplot as plt
 from sklearn import svm, cluster
+from sklearn.grid_search import GridSearchCV
 import sklearn.metrics as skm
 import random
+import numpy as np
 import pdb
 
 # We multiply this scale value because
 # the input value seems to be too small?
-SCALE = 10.0
+SCALE = 1.0
 
 class PopulationInfo:
     def __init__(self, line):
@@ -70,14 +72,32 @@ def load_input(input):
             info_list.append(inf)
     return info_list
 
-def display_chart(coord, tag, colors):
+def plot_chart(coord, tag, colors):
     plt.figure(figsize=(9,6))
     plt.title("Foreigner to Birth rate")
     plt.xlabel("Foreigner Rate")
     plt.ylabel("Birth Rate")
-    plt.scatter(*zip(*coord), c=tag, cmap=matplotlib.colors.ListedColormap(colors))
+    plt.scatter(*zip(*coord),
+                c=tag,
+                cmap=matplotlib.colors.ListedColormap(colors),
+                edgecolors='k')
     #plt.ylim(ymin=0)
-    plt.show()
+
+def plot_contours(model, coord, tag, colors):
+    x, y = zip(*coord)
+    step = 0.02
+    offset = 0.02
+    x_min = np.min(x) - offset
+    x_max = np.max(x) + offset
+    y_min = np.min(y) - offset
+    y_max = np.max(y) + offset
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, step),
+                         np.arange(y_min, y_max, step))
+    points = np.c_[xx.ravel(), yy.ravel()]
+    z = model.predict(points)
+    z = z.reshape(xx.shape)
+    plt.contourf(xx, yy, z, cmap=matplotlib.colors.ListedColormap(colors))
+
 
 def extract_coord_and_tags(data):
     coord = []
@@ -112,20 +132,29 @@ def analyze(input):
     trainNum = 600
     train = data[:trainNum]
     validate = data[trainNum:]
+    print("whole: ", len(data))
+    print("training: ", len(train))
+    print("validating: ", len(validate))
     train_coord, train_tag = extract_coord_and_tags(train)
     validate_coord, validate_tag = extract_coord_and_tags(validate)
-    #km = cluster.KMeans(n_clusters=2, random_state=1234)
-    #cluster_result = km.fit(train_coord)
-    #train_tag = cluster_result.labels_
 
-    #display_chart(train_coord, train_tag, ["blue","red"])
-    #display_chart(validate_coord, validate_tag, ["blue","red"])
+    #plot_chart(train_coord, train_tag, ["blue","red"])
+    #param = [
+    #    {
+    #        'C': [1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0],
+    #        'kernel': ['rbf'],
+    #        'gamma': [1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0],
+    #    }
+    #]
+    #clf = GridSearchCV(svm.SVC(), param)
+    #clf.fit(train_coord, train_tag)
+    #model = clf.best_estimator_
+    #print(model)
     C = 1.0 # SVM regularization parameter
-    model = svm.SVC(kernel='linear',
+    model = svm.SVC(kernel='rbf',
                     C=C,
                     class_weight='balanced',
                     random_state=seed)
-    #model = svm.LinearSVC(C=C)
     model.fit(train_coord, train_tag)
     predict_result = model.predict(validate_coord)
     mat = skm.confusion_matrix(validate_tag, predict_result)
@@ -138,17 +167,21 @@ def analyze(input):
     print("precision: ", precision)
     print("recall: ", recall)
     print("F1: ", f1)
-    #w = model.coef_[0]
-    #i = model.intercept_
-    #a = -w[0]/w[1]
-    #b = i[0]/w[1]
-    #print("y = {}x - {}".format(a, b))
-    #start = (0, -b)
-    #val = 0.15
-    #ev = val*a - b
-    #end = (val, ev)
-    #print(start, end)
-    #pdb.set_trace()
+
+    colors = ["blue","red"]
+    plot_contours(model, validate_coord, validate_tag, colors)
+    plot_chart(validate_coord, validate_tag, colors)
+    plt.show()
+    ##w = model.coef_[0]
+    ##i = model.intercept_
+    ##a = -w[0]/w[1]
+    ##b = i[0]/w[1]
+    ##print("y = {}x - {}".format(a, b))
+    ##start = (0, -b)
+    ##val = 0.15
+    ##ev = val*a - b
+    ##end = (val, ev)
+    ##print(start, end)
 
 if __name__ == "__main__":
     analyze()
