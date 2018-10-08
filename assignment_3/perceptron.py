@@ -1,4 +1,5 @@
 import numpy as np
+import unittest
 import pdb
 
 def AND(l, r):
@@ -39,25 +40,47 @@ def XOR2(l, r):
     rr = AND(l, r)
     return NOR(ll, rr)
 
-if __name__ == "__main__":
-    assert AND(0,0) is 0
-    assert AND(1,0) is 0
-    assert AND(0,1) is 0
-    assert AND(1,1) is 1
-    assert OR(0,0) is 0
-    assert OR(1,0) is 1
-    assert OR(0,1) is 1
-    assert OR(1,1) is 1
-    assert NOR(0,0) is 1
-    assert NOR(1,0) is 0
-    assert NOR(0,1) is 0
-    assert NOR(1,1) is 0
-    assert XOR(0,0) is 0
-    assert XOR(1,0) is 1
-    assert XOR(0,1) is 1
-    assert XOR(1,1) is 0
-    assert XOR2(0,0) is 0
-    assert XOR2(1,0) is 1
-    assert XOR2(0,1) is 1
-    assert XOR2(1,1) is 0
+def HADD(l, r):
+    c = AND(l, r)
+    s = XOR(l, r)
+    return c, s
 
+class TestPerceptron(unittest.TestCase):
+    def test_and(self):
+        self.assertEqual(AND(0,0), 0)
+        self.assertEqual(AND(1,0), 0)
+        self.assertEqual(AND(0,1), 0)
+        self.assertEqual(AND(1,1), 1)
+
+    def test_or(self):
+        self.assertEqual(OR(0,0), 0)
+        self.assertEqual(OR(1,0), 1)
+        self.assertEqual(OR(0,1), 1)
+        self.assertEqual(OR(1,1), 1)
+
+    def test_nor(self):
+        self.assertEqual(NOR(0,0), 1)
+        self.assertEqual(NOR(1,0), 0)
+        self.assertEqual(NOR(0,1), 0)
+        self.assertEqual(NOR(1,1), 0)
+
+    def test_xor(self):
+        self.assertEqual(XOR(0,0), 0)
+        self.assertEqual(XOR(1,0), 1)
+        self.assertEqual(XOR(0,1), 1)
+        self.assertEqual(XOR(1,1), 0)
+
+    def test_xor2(self):
+        self.assertEqual(XOR2(0,0), 0)
+        self.assertEqual(XOR2(1,0), 1)
+        self.assertEqual(XOR2(0,1), 1)
+        self.assertEqual(XOR2(1,1), 0)
+
+    def test_hadd(self):
+        self.assertEqual(HADD(0,0), (0, 0))
+        self.assertEqual(HADD(1,0), (0, 1))
+        self.assertEqual(HADD(0,1), (0, 1))
+        self.assertEqual(HADD(1,1), (1, 0))
+
+if __name__ == "__main__":
+    unittest.main()
