@@ -36,6 +36,9 @@ def _read_words(filename):
 
 
 def _build_vocab(filename):
+  """Read all vocabularies from text file and generate a word-to-id
+  dictionary which has the most frequent words with a lower IDs and rare words
+  as higher IDs"""
   data = _read_words(filename)
 
   counter = collections.Counter(data)
@@ -118,6 +121,7 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
       epoch_size = tf.identity(epoch_size, name="epoch_size")
 
     i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
+    #i = tf.data.Dataset.range(epoch_size).dequeue()
     x = tf.strided_slice(data, [0, i * num_steps],
                          [batch_size, (i + 1) * num_steps])
     x.set_shape([batch_size, num_steps])
