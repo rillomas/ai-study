@@ -449,6 +449,23 @@ def get_config():
     return config
 
 
+class SaveAtEnd(tf.train.SessionRunHook):
+    """A hook that saves a seesion at the end."""
+
+    def __init__(self, save_path):
+        self.save_path = save_path
+
+    def begin(self):
+        """Begin hook at session creation."""
+        tf.logging.info("Creating Saver as ", self.save_path)
+        self._saver = tf.train.Saver()
+
+    def end(self, session):
+        """Called at session closing."""
+        self._saver.save(session, self.save_path)
+
+
+
 def main(_):
     if not FLAGS.data_path:
         raise ValueError("Must set --data_path to PTB data directory")
@@ -517,12 +534,19 @@ def main(_):
         tf.train.import_meta_graph(metagraph)
         for model in models.values():
             model.import_ops()
-        saver = tf.train.Saver()
+        if FLAGS.save_path:
+            save_hook = SaveAtEnd(FLAGS.save_path)
+            # saver.save(
+            #     session,
+            #     FALGS.save_path,
+            #     global_step=tf.train.get_global_step())
+            #sv.saver.save(session, FLAGS.save_path, global_step=sv.global_step)
         #sv = tf.train.Supervisor(logdir=FLAGS.save_path)
         config_proto = tf.ConfigProto(allow_soft_placement=soft_placement)
         #with sv.managed_session(config=config_proto) as session:
         with tf.train.MonitoredTrainingSession(
-                checkpoint_dir=FLAGS.save_path,
+                #checkpoint_dir=FLAGS.save_path,
+                chief_only_hooks=[save_hook],
                 config=config_proto) as session:
             for i in range(config.max_max_epoch):
                 lr_decay = config.lr_decay**max(i + 1 - config.max_epoch, 0.0)
@@ -541,13 +565,6 @@ def main(_):
             test_perplexity = run_epoch(session, mtest)
             print("Test Perplexity: %.3f" % test_perplexity)
 
-            if FLAGS.save_path:
-                print("Saving model to %s." % FLAGS.save_path)
-                saver.save(
-                    session,
-                    FALGS.save_path,
-                    global_step=tf.train.get_global_step())
-                #sv.saver.save(session, FLAGS.save_path, global_step=sv.global_step)
 
 
 if __name__ == "__main__":
