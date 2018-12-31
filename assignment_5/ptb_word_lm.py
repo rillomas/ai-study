@@ -501,9 +501,14 @@ def main(_):
     tf.train.import_meta_graph(metagraph)
     for model in models.values():
       model.import_ops()
-    sv = tf.train.Supervisor(logdir=FLAGS.save_path)
+    saver = tf.train.Saver()
+    #sv = tf.train.Supervisor(logdir=FLAGS.save_path)
     config_proto = tf.ConfigProto(allow_soft_placement=soft_placement)
-    with sv.managed_session(config=config_proto) as session:
+    #with sv.managed_session(config=config_proto) as session:
+    with tf.train.MonitoredTrainingSession(
+        checkpoint_dir=FLAGS.save_path,
+        config=config_proto
+      ) as session:
       for i in range(config.max_max_epoch):
         lr_decay = config.lr_decay ** max(i + 1 - config.max_epoch, 0.0)
         m.assign_lr(session, config.learning_rate * lr_decay)
@@ -520,7 +525,8 @@ def main(_):
 
       if FLAGS.save_path:
         print("Saving model to %s." % FLAGS.save_path)
-        sv.saver.save(session, FLAGS.save_path, global_step=sv.global_step)
+        saver.save(session, FALGS.save_path, global_step=tf.train.get_global_step())
+        #sv.saver.save(session, FLAGS.save_path, global_step=sv.global_step)
 
 
 if __name__ == "__main__":

@@ -106,8 +106,6 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
   Raises:
     tf.errors.InvalidArgumentError: if batch_size or num_steps are too high.
   """
-  import pdb
-  pdb.set_trace()
   with tf.name_scope(name, "PTBProducer", [raw_data, batch_size, num_steps]):
     # batch_size == 20
     # num_steps == 2
@@ -118,7 +116,7 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
     batch_len = data_len // batch_size  # 929589 // 20 = 46479
     # reshape the input data to multiple batches
     # so that each batch has batch_len elements
-    # data.shape == (29, 46479)
+    # data.shape == (20, 46479)
     data = tf.reshape(raw_data[0 : batch_size * batch_len],
                       [batch_size, batch_len])
 
