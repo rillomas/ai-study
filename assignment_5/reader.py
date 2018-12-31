@@ -35,6 +35,9 @@ def _read_words(filename):
 
 
 def _build_vocab(filename):
+    """Read all vocabularies from text file and generate a word-to-id
+    dictionary which has the most frequent words with a
+    lower IDs and rare words as higher IDs"""
     data = _read_words(filename)
 
     counter = collections.Counter(data)
@@ -47,6 +50,7 @@ def _build_vocab(filename):
 
 
 def _file_to_word_ids(filename, word_to_id):
+    """Convert the whole word sequence to IDs"""
     data = _read_words(filename)
     return [word_to_id[word] for word in data if word in word_to_id]
 
@@ -102,14 +106,21 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
     tf.errors.InvalidArgumentError: if batch_size or num_steps are too high.
   """
     with tf.name_scope(name, "PTBProducer", [raw_data, batch_size, num_steps]):
+        # batch_size == 20
+        # num_steps == 2
+        # raw_data = 1 dimension array of size 929589 (train_data)
         raw_data = tf.convert_to_tensor(
             raw_data, name="raw_data", dtype=tf.int32)
 
         data_len = tf.size(raw_data)
-        batch_len = data_len // batch_size
+        batch_len = data_len // batch_size  # 929589 // 20 = 46479
+        # reshape the input data to multiple batches
+        # so that each batch has batch_len elements
+        # data.shape == (20, 46479)
         data = tf.reshape(raw_data[0:batch_size * batch_len],
                           [batch_size, batch_len])
 
+        # epoch_size == (46479 - 1) // 2
         epoch_size = (batch_len - 1) // num_steps
         assertion = tf.assert_positive(
             epoch_size,
