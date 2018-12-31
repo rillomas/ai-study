@@ -465,7 +465,6 @@ class SaveAtEnd(tf.train.SessionRunHook):
         self._saver.save(session, self.save_path)
 
 
-
 def main(_):
     if not FLAGS.data_path:
         raise ValueError("Must set --data_path to PTB data directory")
@@ -564,7 +563,6 @@ def main(_):
 
             test_perplexity = run_epoch(session, mtest)
             print("Test Perplexity: %.3f" % test_perplexity)
-
 
 
 if __name__ == "__main__":

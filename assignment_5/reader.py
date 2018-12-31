@@ -35,9 +35,9 @@ def _read_words(filename):
 
 
 def _build_vocab(filename):
-    """Read all vocabularies from text file and generate a word-to-id
-  dictionary which has the most frequent words with a lower IDs and rare words
-  as higher IDs"""
+      """Read all vocabularies from text file and generate a word-to-id
+    dictionary which has the most frequent words with a lower IDs and rare words
+    as higher IDs"""
     data = _read_words(filename)
 
     counter = collections.Counter(data)
