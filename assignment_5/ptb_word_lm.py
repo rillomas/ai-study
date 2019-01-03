@@ -523,6 +523,10 @@ def main(_):
         # Since this is a training session we only do training here.
         with tf.train.MonitoredTrainingSession(
                 checkpoint_dir=FLAGS.save_path,
+                # Disable logging of steps/s to avoid warning during validation
+                # The fix is copied from
+                # github.com/mozilla/DeepSpeech/issues/1505
+                log_step_count_steps=0,
                 config=config_proto) as session:
             for i in range(config.max_max_epoch):
                 lr_decay = config.lr_decay**max(i + 1 - config.max_epoch, 0.0)
@@ -534,16 +538,12 @@ def main(_):
                     session, m, eval_op=m.train_op, verbose=True)
                 print("Epoch: %d Train Perplexity: %.3f" % (i + 1,
                                                             train_perplexity))
-                # In order to avoid warning `It seems that global step
-                # (tf.train.get_global_step) has not been increased...`
-                # we remove the validation and testing from
-                # the training session.
-                # valid_perplexity = run_epoch(session, mvalid)
-                # print("Epoch: %d Valid Perplexity: %.3f" % (i + 1,
-                #                                             valid_perplexity))
+                valid_perplexity = run_epoch(session, mvalid)
+                print("Epoch: %d Valid Perplexity: %.3f" % (i + 1,
+                                                            valid_perplexity))
 
-            # test_perplexity = run_epoch(session, mtest)
-            # print("Test Perplexity: %.3f" % test_perplexity)
+            test_perplexity = run_epoch(session, mtest)
+            print("Test Perplexity: %.3f" % test_perplexity)
 
 
 if __name__ == "__main__":
