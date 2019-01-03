@@ -66,6 +66,8 @@ import tensorflow as tf
 import reader
 import util
 
+from distutils.version import StrictVersion
+
 from tensorflow.python.client import device_lib
 
 flags = tf.flags
@@ -444,7 +446,8 @@ def get_config():
         raise ValueError("Invalid model: %s", FLAGS.model)
     if FLAGS.rnn_mode:
         config.rnn_mode = FLAGS.rnn_mode
-    if FLAGS.num_gpus != 1 or tf.__version__ < "1.3.0":
+    if (FLAGS.num_gpus != 1 or
+       StrictVersion(tf.__version__) < StrictVersion("1.3.0")):
         config.rnn_mode = BASIC
     return config
 
