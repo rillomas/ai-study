@@ -507,7 +507,8 @@ def main(_):
         for name, model in models.items():
             model.export_ops(name)
         metagraph = tf.train.export_meta_graph()
-        if tf.__version__ < "1.1.0" and FLAGS.num_gpus > 1:
+        if (StrictVersion(tf.__version__) < StrictVersion("1.1.0") and
+           FLAGS.num_gpus > 1):
             raise ValueError(
                 "num_gpus > 1 is not supported for TensorFlow versions "
                 "below 1.1.0")
