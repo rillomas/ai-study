@@ -173,33 +173,34 @@ class PTBModel(object):
 
     def _build_rnn_graph(self, inputs, config, is_training):
         if config.rnn_mode == CUDNN:
-            return self._build_rnn_graph_cudnn(inputs, config, is_training)
+            raise ValueError("CUDNN mode is disabled for now")
+            # return self._build_rnn_graph_cudnn(inputs, config, is_training)
         else:
             return self._build_rnn_graph_lstm(inputs, config, is_training)
 
-    def _build_rnn_graph_cudnn(self, inputs, config, is_training):
-        """Build the inference graph using CUDNN cell."""
-        inputs = tf.transpose(inputs, [1, 0, 2])
-        self._cell = tf.contrib.cudnn_rnn.CudnnLSTM(
-            num_layers=config.num_layers,
-            num_units=config.hidden_size,
-            input_size=config.hidden_size,
-            dropout=1 - config.keep_prob if is_training else 0)
-        params_size_t = self._cell.params_size()
-        self._rnn_params = tf.get_variable(
-            "lstm_params",
-            initializer=tf.random_uniform([params_size_t], -config.init_scale,
-                                          config.init_scale),
-            validate_shape=False)
-        c = tf.zeros([config.num_layers, self.batch_size, config.hidden_size],
-                     tf.float32)
-        h = tf.zeros([config.num_layers, self.batch_size, config.hidden_size],
-                     tf.float32)
-        self._initial_state = (tf.contrib.rnn.LSTMStateTuple(h=h, c=c), )
-        outputs, h, c = self._cell(inputs, h, c, self._rnn_params, is_training)
-        outputs = tf.transpose(outputs, [1, 0, 2])
-        outputs = tf.reshape(outputs, [-1, config.hidden_size])
-        return outputs, (tf.contrib.rnn.LSTMStateTuple(h=h, c=c), )
+    # def _build_rnn_graph_cudnn(self, inputs, config, is_training):
+    #     """Build the inference graph using CUDNN cell."""
+    #     inputs = tf.transpose(inputs, [1, 0, 2])
+    #     self._cell = tf.contrib.cudnn_rnn.CudnnLSTM(
+    #         num_layers=config.num_layers,
+    #         num_units=config.hidden_size,
+    #         input_size=config.hidden_size,
+    #         dropout=1 - config.keep_prob if is_training else 0)
+    #     params_size_t = self._cell.params_size()
+    #     self._rnn_params = tf.get_variable(
+    #         "lstm_params",
+    #         initializer=tf.random_uniform([params_size_t], -config.init_scale,
+    #                                       config.init_scale),
+    #         validate_shape=False)
+    #     c = tf.zeros([config.num_layers, self.batch_size, config.hidden_size],
+    #                  tf.float32)
+    #     h = tf.zeros([config.num_layers, self.batch_size, config.hidden_size],
+    #                  tf.float32)
+    #     self._initial_state = (tf.contrib.rnn.LSTMStateTuple(h=h, c=c), )
+    #     outputs, h, c = self._cell(inputs, h, c, self._rnn_params, is_training)
+    #     outputs = tf.transpose(outputs, [1, 0, 2])
+    #     outputs = tf.reshape(outputs, [-1, config.hidden_size])
+    #     return outputs, (tf.contrib.rnn.LSTMStateTuple(h=h, c=c), )
 
     def _get_lstm_cell(self, config, is_training):
         if config.rnn_mode == BASIC:
