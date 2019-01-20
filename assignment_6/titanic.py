@@ -69,6 +69,9 @@ def calc_ratio(model, data, label):
     #     if exp == act
     # return ratio
 
+def create_output_data(index, value):
+    return pd.concat((index, value), axis=1)
+
 
 if __name__ == "__main__":
     train_data = pd.read_csv("train.csv")
@@ -82,3 +85,7 @@ if __name__ == "__main__":
     print(result)
     ratio = calc_ratio(model, pp_data, label)
     print(ratio)
+    val = pd.DataFrame({"Survived": result})
+    output = create_output_data(test_data["PassengerId"], val)
+    print(output.head())
+    output.to_csv("predict.csv", index=False)
