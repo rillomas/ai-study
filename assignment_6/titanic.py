@@ -8,13 +8,16 @@ def preprocess_data(data):
     """
     df_sex = pd.get_dummies(data['Sex'])
     df = pd.concat((data, df_sex), axis=1)
+    # fill missing age values with a mean value
+    col = "Age"
+    colval = df[col]
+    df[col] = colval.fillna(colval.mean())
     drop_col = [
         'Name',
         'Ticket',
         'Cabin',
         'Embarked',
         'Sex',
-        'Age'
     ]
     leftover = df.drop(columns=drop_col)
     return leftover
