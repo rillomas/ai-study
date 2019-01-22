@@ -1,13 +1,17 @@
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 
 def preprocess_data(data):
     """Common preprocessing for both
     training and testing data
     """
+    # Change enum type data to one hot values
     df_sex = pd.get_dummies(data['Sex'])
     df = pd.concat((data, df_sex), axis=1)
+    df_pclass = pd.get_dummies(data['Pclass'], prefix='pclass')
+    df = pd.concat((data, df_pclass), axis=1)
     # fill missing age values with a mean value
     col = "Age"
     colval = df[col]
@@ -18,6 +22,9 @@ def preprocess_data(data):
         'Cabin',
         'Embarked',
         'Sex',
+        'Pclass',
+        'Parch',
+        'SibSp'
     ]
     leftover = df.drop(columns=drop_col)
     return leftover
@@ -54,6 +61,7 @@ def preprocess_test_data(data):
 
 def train(data, label):
     clf = RandomForestClassifier()
+    #clf = SVC(gamma=2, C)
     clf.fit(data, label)
     return clf
 
