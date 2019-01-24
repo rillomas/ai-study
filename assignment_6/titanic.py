@@ -29,7 +29,7 @@ def preprocess_data(data):
     df_sex = pd.get_dummies(data['Sex'])
     df = pd.concat((data, df_sex), axis=1)
     df_pclass = pd.get_dummies(data['Pclass'], prefix='pclass')
-    df = pd.concat((data, df_pclass), axis=1)
+    df = pd.concat((df, df_pclass), axis=1)
     # fill missing age values with a mean value
     col = "Age"
     colval = df[col]
