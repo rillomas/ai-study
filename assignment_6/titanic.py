@@ -3,6 +3,24 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 
+def normalize_data(data):
+    """Normalize the data for certain columns between min and max.
+    This is needed for SVM classification"""
+    target_col = [
+        'Age',
+        'Fare',
+    ]
+    cols = data[target_col]
+    # print(cols.head())
+    mincols = cols.min()
+    maxcols = cols.max()
+    normalized = (cols - mincols) / (maxcols - mincols)
+    # print(mincols)
+    # print(maxcols)
+    # print(normalized.head())
+    data[target_col] = normalized
+    return data
+
 def preprocess_data(data):
     """Common preprocessing for both
     training and testing data
@@ -16,7 +34,9 @@ def preprocess_data(data):
     col = "Age"
     colval = df[col]
     df[col] = colval.fillna(colval.mean())
+    df = normalize_data(df)
     drop_col = [
+        'PassengerId',
         'Name',
         'Ticket',
         'Cabin',
@@ -60,8 +80,8 @@ def preprocess_test_data(data):
 
 
 def train(data, label):
-    clf = RandomForestClassifier()
-    #clf = SVC(gamma=2, C)
+    # clf = RandomForestClassifier()
+    clf = SVC()
     clf.fit(data, label)
     return clf
 
@@ -88,15 +108,15 @@ if __name__ == "__main__":
     train_data = pd.read_csv("train.csv")
     pp_data, label = preprocess_train_data(train_data)
     model = train(pp_data, label)
-    print(model)
+    # print(model)
     test_data = pd.read_csv("test.csv")
     ppt_data = preprocess_test_data(test_data)
-    print(ppt_data)
+    # print(ppt_data)
     result = test(model, ppt_data)
     print(result)
     ratio = calc_ratio(model, pp_data, label)
     print(ratio)
     val = pd.DataFrame({"Survived": result})
     output = create_output_data(test_data["PassengerId"], val)
-    print(output.head())
+    # print(output.head())
     output.to_csv("predict.csv", index=False)
