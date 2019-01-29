@@ -9,6 +9,8 @@ def normalize_data(data):
     target_col = [
         'Age',
         'Fare',
+        'SibSp',
+        'Parch'
     ]
     cols = data[target_col]
     # print(cols.head())
@@ -43,8 +45,8 @@ def preprocess_data(data):
         'Embarked',
         'Sex',
         'Pclass',
-        'Parch',
-        'SibSp'
+        # 'Parch',
+        # 'SibSp'
     ]
     leftover = df.drop(columns=drop_col)
     return leftover
