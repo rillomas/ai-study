@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
+
 
 def normalize_data(data):
     """Normalize the data for certain columns between min and max.
@@ -23,30 +23,43 @@ def normalize_data(data):
     data[target_col] = normalized
     return data
 
-def preprocess_data(data):
-    """Common preprocessing for both
-    training and testing data
-    """
-    # Change enum type data to one hot values
+def convert_to_onehot(data):
+    """Convert categorical data to one hot"""
     df_sex = pd.get_dummies(data['Sex'])
     df = pd.concat((data, df_sex), axis=1)
     df_pclass = pd.get_dummies(data['Pclass'], prefix='pclass')
     df = pd.concat((df, df_pclass), axis=1)
-    # fill missing age values with a mean value
+    df_embark = pd.get_dummies(data['Embarked'], prefix='embark')
+    df = pd.concat((df, df_embark), axis=1)
+    return df
+
+
+def fill_missing(df):
+    """Fill missing values to specific columns"""
     col = "Age"
     colval = df[col]
     df[col] = colval.fillna(colval.mean())
+    col = "Embarked"
+    colval = df[col]
+    df[col] = colval.fillna(colval.mode())
+    return df
+
+
+def preprocess_data(data):
+    """Common preprocessing for both
+    training and testing data
+    """
+    df = fill_missing(data)
+    df = convert_to_onehot(df)
     df = normalize_data(df)
     drop_col = [
         'PassengerId',
         'Name',
         'Ticket',
         'Cabin',
-        'Embarked',
         'Sex',
         'Pclass',
-        # 'Parch',
-        # 'SibSp'
+        'Embarked',
     ]
     leftover = df.drop(columns=drop_col)
     return leftover
