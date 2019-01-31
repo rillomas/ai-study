@@ -96,7 +96,7 @@ def preprocess_test_data(data):
 
 def train(data, label):
     # clf = RandomForestClassifier()
-    clf = SVC()
+    clf = SVC(gamma='scale')
     clf.fit(data, label)
     return clf
 
